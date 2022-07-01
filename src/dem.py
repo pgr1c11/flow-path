@@ -4,9 +4,10 @@ from abc import ABC, abstractmethod
 from matplotlib import pyplot as plt
 from typing import Tuple
 
-class dem(ABC):
+class Dem(ABC):
     def __init__(self) -> None:
         self.dem: np.ndarray
+        self.boundary: np.ndarray
 
     @abstractmethod
     def _load() -> np.ndarray:
@@ -17,21 +18,31 @@ class dem(ABC):
         plt.colorbar()
         plt.show()
 
-class dem_tif(dem):
+    def _boundary(self) -> np.ndarray:
+        dem_size = np.shape(self.dem)
+        dem_boundary = np.zeros(dem_size, dtype=int)
+        change_index = (0, -1)
+        dem_boundary[change_index,:] = 1
+        dem_boundary[:,change_index] = 1
+        return dem_boundary
+
+class DemTif(Dem):
     def __init__(self, path: str) -> None:
         self.__path = path
         self.dem = self._load()
+        self.boundary = self._boundary()
 
     def _load(self) -> np.ndarray:
         dataset = gdal.Open(self.__path)
         return np.array(dataset.GetRasterBand(1).ReadAsArray())
 
-class dem_dummy(dem):
+class DemDummy(Dem):
     def __init__(self, dimensions: Tuple[int, int] = (100, 100), relief: float = 50, noise: float = 0.1) -> None:
         self.__dimensions = dimensions
         self.__relief = relief
         self.__noise = noise
         self.dem = self._load()
+        self.boundary = self._boundary()
     
     def _load(self) -> np.ndarray:
         start = 0
