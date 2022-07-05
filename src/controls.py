@@ -9,7 +9,7 @@ class Controls:
         persistence: float,
         horizontal_flow: bool,
         fahrboschung_angle: float,
-        max_n_walks: int,
+        max_n_steps: int,
         max_length: float
         ) -> None:
         
@@ -19,5 +19,5 @@ class Controls:
         self.persistence = persistence
         self.horizontal_flow = horizontal_flow
         self.fahrboschung_angle = fahrboschung_angle
-        self.max_n_walks = max_n_walks
+        self.max_n_steps = max_n_steps
         self.max_length = max_length

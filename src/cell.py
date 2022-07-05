@@ -13,27 +13,29 @@ class Cell:
         self.coords = coords
         self.on_boundary = self.__on_boundary()
         self.value = self.__current_cell_value()
+        self.neighbour_coords = self.__neighbour_coords()
         self.neighbour_values = self.__neighbour_values()
         self.is_sink = self.__is_sink()
+        self.neighbour_tan_slopes = self.__neighbour_tan_slopes()
+        self.neighbour_yis = None
 
-    def __neighbour_values(self) -> list:
+    def __neighbour_coords(self) -> list:
         r_min = self.coords[0]-1
         r_max = self.coords[0]+2
         c_min = self.coords[1]-1
         c_max = self.coords[1]+2
-
         if self.on_boundary:
             r_c_lims = np.shape(self.__controls.dem.dem)
             r_min = 0 if r_min < 0 else r_min
             r_max = r_c_lims[0] if r_max > r_c_lims[0] else r_max
             c_min = 0 if c_min < 0 else c_min
             c_max = r_c_lims[1] if c_max > r_c_lims[1] else c_max
-        
-        dem_values = self.__controls.dem.dem[r_min:r_max, c_min:c_max]
-        dem_list_list = dem_values.tolist()
-        dem_list = [x for xs in dem_list_list for x in xs]
-        dem_list.remove(self.value)
-        return dem_list
+        coords = [(i, j) for i in list(range(r_min, r_max)) for j in list(range(c_min, c_max))]
+        coords.remove(self.coords)
+        return coords
+
+    def __neighbour_values(self) -> list:
+        return [self.__controls.dem.dem[i[0], i[1]] for i in self.neighbour_coords]
 
     def __on_boundary(self) -> bool:
         b = False if self.__controls.dem.boundary[self.coords[0], self.coords[1]] == 0 else True
@@ -49,4 +51,17 @@ class Cell:
             s = True if all(self.value <= i for i in self.neighbour_values) else False
         return s
 
-
+    def __neighbour_tan_slopes(self) -> list:
+        neighbour_values_calc = [i * 0.9
+            if i == self.value
+            and self.__controls.horizontal_flow
+            else i
+            for i in self.neighbour_values]
+        tan_slopes = [((self.value - neighbour_value) / self.__controls.dem.resolution[0])
+            if neighbour_value < self.value
+            else None
+            for neighbour_value in neighbour_values_calc]
+        return tan_slopes
+        
+    def __neighbour_yis(self) -> list:
+        pass

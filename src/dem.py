@@ -1,4 +1,4 @@
-from osgeo import gdal
+from osgeo import gdal, osr
 import numpy as np
 from abc import ABC, abstractmethod
 from matplotlib import pyplot as plt
@@ -8,6 +8,8 @@ class Dem(ABC):
     def __init__(self) -> None:
         self.dem: np.ndarray
         self.boundary: np.ndarray
+        self.resolution: Tuple[float, float]
+        self.crs: str
 
     @abstractmethod
     def _load() -> np.ndarray:
@@ -32,17 +34,37 @@ class DemTif(Dem):
         self.dem = self._load()
         self.boundary = self._boundary()
 
+    def __get_resolution(self, dataset) -> Tuple[float, float]:
+        _, xres, _, _, _, yres  = dataset.GetGeoTransform()
+        return (abs(xres), abs(yres))
+
+    def __get_crs(self, dataset) -> str:
+        wkt_crs = dataset.GetProjection()
+        srs=osr.SpatialReference(wkt=wkt_crs)
+        if not srs.IsProjected:
+            raise Exception("DEM CRS must be projected.")
+        return wkt_crs
+
     def _load(self) -> np.ndarray:
         dataset = gdal.Open(self.__path)
+        self.resolution = self.__get_resolution(dataset)
+        self.crs = self.__get_crs(dataset)
         return np.array(dataset.GetRasterBand(1).ReadAsArray())
 
 class DemDummy(Dem):
-    def __init__(self, dimensions: Tuple[int, int] = (100, 100), relief: float = 50, noise: float = 0.1) -> None:
+    def __init__(
+        self,
+        dimensions: Tuple[int, int] = (100, 100),
+        relief: float = 50,
+        noise: float = 0.1) -> None:
+
         self.__dimensions = dimensions
         self.__relief = relief
         self.__noise = noise
         self.dem = self._load()
         self.boundary = self._boundary()
+        self.resolution = (1, 1)
+        self.crs = "Dummy"
     
     def _load(self) -> np.ndarray:
         start = 0
