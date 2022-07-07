@@ -2,11 +2,14 @@ from typing import Tuple
 import numpy as np
 from src.controls import Controls
 
+_RAD_TO_DEG = np.pi / 180
+
 class Cell:
     def __init__(
         self,
         controls: Controls,
-        coords: Tuple[int, int]
+        coords: Tuple[int, int],
+        previous_direction: int = 0
         ) -> None:
 
         self.__controls = controls
@@ -17,7 +20,9 @@ class Cell:
         self.neighbour_values = self.__neighbour_values()
         self.is_sink = self.__is_sink()
         self.neighbour_tan_slopes = self.__neighbour_tan_slopes()
-        self.neighbour_yis = None
+        self.neighbour_tan_slopes_sum = sum(filter(None, self.neighbour_tan_slopes))
+        self.neighbour_yis = self.__neighbour_yis()
+        self.previous_direction_idx = previous_direction
 
     def __neighbour_coords(self) -> list:
         r_min = self.coords[0]-1
@@ -64,4 +69,9 @@ class Cell:
         return tan_slopes
         
     def __neighbour_yis(self) -> list:
-        pass
+        neighbour_yis = [i / np.tan(self.__controls.slope_threshold * _RAD_TO_DEG)
+            if i is not None
+            else 0
+            for i in self.neighbour_tan_slopes]
+        self.max_yis: float = max(neighbour_yis)
+        return neighbour_yis
