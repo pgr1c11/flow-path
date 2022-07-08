@@ -9,6 +9,7 @@ class Dem(ABC):
         self.dem: np.ndarray
         self.boundary: np.ndarray
         self.resolution: Tuple[float, float]
+        self.origin: Tuple[float, float]
         self.crs: str
 
     @abstractmethod
@@ -38,6 +39,10 @@ class DemTif(Dem):
         _, xres, _, _, _, yres  = dataset.GetGeoTransform()
         return (abs(xres), abs(yres))
 
+    def __get_origin(self, dataset) -> Tuple[float, float]:
+        x_or, _, _, y_or, _, _ = dataset.GetGeoTransform()
+        return (x_or, y_or)
+
     def __get_crs(self, dataset) -> str:
         wkt_crs = dataset.GetProjection()
         srs=osr.SpatialReference(wkt=wkt_crs)
@@ -48,6 +53,7 @@ class DemTif(Dem):
     def _load(self) -> np.ndarray:
         dataset = gdal.Open(self.__path)
         self.resolution = self.__get_resolution(dataset)
+        self.origin = self.__get_origin(dataset)
         self.crs = self.__get_crs(dataset)
         return np.array(dataset.GetRasterBand(1).ReadAsArray())
 
@@ -64,7 +70,8 @@ class DemDummy(Dem):
         self.dem = self._load()
         self.boundary = self._boundary()
         self.resolution = (1, 1)
-        self.crs = "Dummy"
+        self.origin = (0, 0)
+        self.crs = "None"
     
     def _load(self) -> np.ndarray:
         start = 0
