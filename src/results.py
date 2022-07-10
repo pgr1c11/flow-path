@@ -27,8 +27,8 @@ class Results(ABC):
     def __get_origin(self, r_min: float, c_min: float) -> Tuple[float, float]:
         dem_origin = self.controls.dem.origin
         dem_origin_x, dem_origin_y = dem_origin[0], dem_origin[1]
-        origin_x = dem_origin_x + c_min
-        origin_y = dem_origin_y + r_min
+        origin_x = dem_origin_x + self.controls.dem.resolution[0] * c_min
+        origin_y = dem_origin_y + self.controls.dem.resolution[1] * r_min
         return (origin_x, origin_y)
 
     def __get_epsg_code(self) -> int:
@@ -77,8 +77,12 @@ class PathResults(Results):
         self.cell_values = [1 for _ in self.affected_cells]
         self.array_shape = self._get_array_shape()
 
-class FlowResults:
-    pass
+class FlowResults(Results):
+    def __init__(self, controls: Controls, affected_cells: list, cell_values: list) -> None:
+        self.controls = controls
+        self.affected_cells = affected_cells
+        self.cell_values = cell_values
+        self.array_shape = self._get_array_shape()
 
 class MapResults:
     pass

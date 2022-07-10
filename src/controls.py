@@ -10,7 +10,8 @@ class Controls:
         horizontal_flow: bool,
         fahrboschung_angle: float,
         max_n_steps: int,
-        max_length: float
+        max_length: float,
+        paths_per_flow: int
         ) -> None:
         
         self.dem = dem
@@ -21,3 +22,4 @@ class Controls:
         self.fahrboschung_angle = fahrboschung_angle
         self.max_n_steps = max_n_steps
         self.max_length = max_length
+        self.paths_per_flow = paths_per_flow

@@ -37,7 +37,7 @@ class DemTif(Dem):
 
     def __get_resolution(self, dataset) -> Tuple[float, float]:
         _, xres, _, _, _, yres  = dataset.GetGeoTransform()
-        return (abs(xres), abs(yres))
+        return (xres, yres)
 
     def __get_origin(self, dataset) -> Tuple[float, float]:
         x_or, _, _, y_or, _, _ = dataset.GetGeoTransform()
@@ -56,6 +56,19 @@ class DemTif(Dem):
         self.origin = self.__get_origin(dataset)
         self.crs = self.__get_crs(dataset)
         return np.array(dataset.GetRasterBand(1).ReadAsArray())
+
+    def xy_coord_from_map_coords(
+        self,
+        map_coords: Tuple[float, float]
+        ) -> Tuple[int, int]:
+        map_x, map_y = map_coords[0], map_coords[1]
+        map_x_offset = (map_x - self.origin[0])
+        map_y_offset = (self.origin[1] - map_y)
+        coord_c_offset = map_x_offset/self.resolution[0]
+        coord_r_offset = map_y_offset/abs(self.resolution[1])
+        coord_c_offset_int = int(coord_c_offset)
+        coord_r_offset_int = int(coord_r_offset)
+        return (coord_r_offset_int, coord_c_offset_int)
 
 class DemDummy(Dem):
     def __init__(

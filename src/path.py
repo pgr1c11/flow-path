@@ -15,8 +15,8 @@ class Path:
         self.results = self.__run()
 
     def __length(self, current_cell: Cell) -> float:
-        r_diff = abs(self.start_cell.coords[0] - current_cell.coords[0]) * self.__controls.dem.resolution[0]
-        c_diff = abs(self.start_cell.coords[1] - current_cell.coords[1]) * self.__controls.dem.resolution[0]
+        r_diff = abs(self.start_cell.coords[0] - current_cell.coords[0]) * abs(self.__controls.dem.resolution[0])
+        c_diff = abs(self.start_cell.coords[1] - current_cell.coords[1]) * abs(self.__controls.dem.resolution[0])
         return ((r_diff**2) + (c_diff**2)) ** 0.5
 
     def __angle(self, current_cell: Cell, path_length: float) -> float:

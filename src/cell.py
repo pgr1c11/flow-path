@@ -62,7 +62,7 @@ class Cell:
             and self.__controls.horizontal_flow
             else i
             for i in self.neighbour_values]
-        tan_slopes = [((self.value - neighbour_value) / self.__controls.dem.resolution[0])
+        tan_slopes = [((self.value - neighbour_value) / abs(self.__controls.dem.resolution[0]))
             if neighbour_value < self.value
             else None
             for neighbour_value in neighbour_values_calc]
