@@ -46,17 +46,17 @@ class Results(ABC):
         arr[(affected_cells_array[:,0], affected_cells_array[:,1])] = self.cell_values
         return arr
 
-    def create_raster(self) -> None:
+    def create_raster(self, filename = 'temp.tif') -> None:
         r_min, c_min, rows, cols = self.array_shape[0], self.array_shape[2], self.array_shape[4], self.array_shape[5]
         arr = self.create_array()
         origin = self.__get_origin(r_min=r_min, c_min=c_min)
         origin_x, origin_y = origin[0], origin[1]
         pixel_size = self.controls.dem.resolution
         pixel_size_x, pixel_size_y = pixel_size[0], pixel_size[1]
-        temp_filename = os.path.join(ROOT_DIR, 'data', 'temp.tif')
+        temp_filename = os.path.join(ROOT_DIR, 'data', 'wip', filename)
         epsg_code = self.__get_epsg_code()
         driver = gdal.GetDriverByName('GTiff')
-        outRaster = driver.Create(temp_filename, cols, rows, 1, gdal.GDT_Byte)
+        outRaster = driver.Create(temp_filename, cols, rows, 1, gdal.GDT_Float32)
         outRaster.SetGeoTransform((origin_x, pixel_size_x, 0, origin_y, 0, pixel_size_y))
         outband = outRaster.GetRasterBand(1)
         outband.WriteArray(arr)

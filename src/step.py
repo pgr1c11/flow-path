@@ -4,9 +4,9 @@ from src.cell import Cell
 
 class Step:
     def __init__(
-        self,
-        controls: Controls,
-        from_cell: Cell
+            self,
+            controls: Controls,
+            from_cell: Cell
         ) -> None:
         self.__controls = controls
         self.from_cell = from_cell

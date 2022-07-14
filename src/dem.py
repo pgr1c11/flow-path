@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from matplotlib import pyplot as plt
 from typing import Tuple
 
+
 class Dem(ABC):
     def __init__(self) -> None:
         self.dem: np.ndarray
@@ -17,7 +18,7 @@ class Dem(ABC):
         pass
 
     def plot(self) -> None:
-        plt.imshow(self.dem, cmap='pink')
+        plt.imshow(self.dem, cmap="pink")
         plt.colorbar()
         plt.show()
 
@@ -25,9 +26,10 @@ class Dem(ABC):
         dem_size = np.shape(self.dem)
         dem_boundary = np.zeros(dem_size, dtype=int)
         change_index = (0, -1)
-        dem_boundary[change_index,:] = 1
-        dem_boundary[:,change_index] = 1
+        dem_boundary[change_index, :] = 1
+        dem_boundary[:, change_index] = 1
         return dem_boundary
+
 
 class DemTif(Dem):
     def __init__(self, path: str) -> None:
@@ -36,7 +38,7 @@ class DemTif(Dem):
         self.boundary = self._boundary()
 
     def __get_resolution(self, dataset) -> Tuple[float, float]:
-        _, xres, _, _, _, yres  = dataset.GetGeoTransform()
+        _, xres, _, _, _, yres = dataset.GetGeoTransform()
         return (xres, yres)
 
     def __get_origin(self, dataset) -> Tuple[float, float]:
@@ -45,7 +47,7 @@ class DemTif(Dem):
 
     def __get_crs(self, dataset) -> str:
         wkt_crs = dataset.GetProjection()
-        srs=osr.SpatialReference(wkt=wkt_crs)
+        srs = osr.SpatialReference(wkt=wkt_crs)
         if not srs.IsProjected:
             raise Exception("DEM CRS must be projected.")
         return wkt_crs
@@ -58,24 +60,25 @@ class DemTif(Dem):
         return np.array(dataset.GetRasterBand(1).ReadAsArray())
 
     def xy_coord_from_map_coords(
-        self,
-        map_coords: Tuple[float, float]
-        ) -> Tuple[int, int]:
+        self, map_coords: Tuple[float, float]
+    ) -> Tuple[int, int]:
         map_x, map_y = map_coords[0], map_coords[1]
-        map_x_offset = (map_x - self.origin[0])
-        map_y_offset = (self.origin[1] - map_y)
-        coord_c_offset = map_x_offset/self.resolution[0]
-        coord_r_offset = map_y_offset/abs(self.resolution[1])
+        map_x_offset = map_x - self.origin[0]
+        map_y_offset = self.origin[1] - map_y
+        coord_c_offset = map_x_offset / self.resolution[0]
+        coord_r_offset = map_y_offset / abs(self.resolution[1])
         coord_c_offset_int = int(coord_c_offset)
         coord_r_offset_int = int(coord_r_offset)
         return (coord_r_offset_int, coord_c_offset_int)
+
 
 class DemDummy(Dem):
     def __init__(
         self,
         dimensions: Tuple[int, int] = (100, 100),
         relief: float = 50,
-        noise: float = 0.1) -> None:
+        noise: float = 0.1,
+    ) -> None:
 
         self.__dimensions = dimensions
         self.__relief = relief
@@ -85,7 +88,7 @@ class DemDummy(Dem):
         self.resolution = (1, 1)
         self.origin = (0, 0)
         self.crs = "None"
-    
+
     def _load(self) -> np.ndarray:
         start = 0
         stop = self.__relief

@@ -1,5 +1,6 @@
 from src.dem import Dem
 
+
 class Controls:
     def __init__(
         self,
@@ -11,9 +12,9 @@ class Controls:
         fahrboschung_angle: float,
         max_n_steps: int,
         max_length: float,
-        paths_per_flow: int
-        ) -> None:
-        
+        paths_per_flow: int,
+    ) -> None:
+
         self.dem = dem
         self.slope_threshold = slope_threshold
         self.divergent_flow = divergent_flow

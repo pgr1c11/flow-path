@@ -6,9 +6,9 @@ from collections import Counter
 
 class Flow:
     def __init__(
-        self,
-        controls: Controls,
-        start_cell: Cell
+            self,
+            controls: Controls,
+            start_cell: Cell
         ) -> None:
         self.__controls = controls
         self.start_cell = start_cell
@@ -22,7 +22,8 @@ class Flow:
         affected_cells_list = [x for xs in affected_cells_list_list for x in xs]
         affected_cells_counter = Counter(elem for elem in affected_cells_list)
         affected_cells = list(affected_cells_counter.keys())
-        cell_values = list(affected_cells_counter.values())
+        cell_count_values = list(affected_cells_counter.values())
+        cell_values = [i/self.__controls.paths_per_flow for i in cell_count_values]
         return FlowResults(
             controls=self.__controls,
             affected_cells=affected_cells,
