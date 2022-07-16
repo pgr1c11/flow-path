@@ -35,9 +35,9 @@ class Map:
             Cell(controls=self.__controls, coords=(r, c)) for r in rows for c in cols
         ]
         flows = [Flow(controls=self.__controls, start_cell=cell) for cell in cells]
-        collapsed_flows = self.__combine_flows(flows=flows)
-        affected_cells = list(collapsed_flows.keys())
-        cell_values = list(collapsed_flows.values())
+        combined_flows = self.__combine_flows(flows=flows)
+        affected_cells = list(combined_flows.keys())
+        cell_values = list(combined_flows.values())
         self.results = MapResults(
             controls=self.__controls,
             affected_cells=affected_cells,
