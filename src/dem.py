@@ -1,38 +1,94 @@
-from osgeo import gdal
+from osgeo import gdal, osr
 import numpy as np
 from abc import ABC, abstractmethod
 from matplotlib import pyplot as plt
 from typing import Tuple
 
-class dem(ABC):
+
+class Dem(ABC):
     def __init__(self) -> None:
         self.dem: np.ndarray
+        self.boundary: np.ndarray
+        self.resolution: Tuple[float, float]
+        self.origin: Tuple[float, float]
+        self.crs: str
 
     @abstractmethod
     def _load() -> np.ndarray:
         pass
 
     def plot(self) -> None:
-        plt.imshow(self.dem, cmap='pink')
+        plt.imshow(self.dem, cmap="pink")
         plt.colorbar()
         plt.show()
 
-class dem_tif(dem):
+    def _boundary(self) -> np.ndarray:
+        dem_size = np.shape(self.dem)
+        dem_boundary = np.zeros(dem_size, dtype=int)
+        change_index = (0, -1)
+        dem_boundary[change_index, :] = 1
+        dem_boundary[:, change_index] = 1
+        return dem_boundary
+
+
+class DemTif(Dem):
     def __init__(self, path: str) -> None:
         self.__path = path
         self.dem = self._load()
+        self.boundary = self._boundary()
+
+    def __get_resolution(self, dataset) -> Tuple[float, float]:
+        _, xres, _, _, _, yres = dataset.GetGeoTransform()
+        return (xres, yres)
+
+    def __get_origin(self, dataset) -> Tuple[float, float]:
+        x_or, _, _, y_or, _, _ = dataset.GetGeoTransform()
+        return (x_or, y_or)
+
+    def __get_crs(self, dataset) -> str:
+        wkt_crs = dataset.GetProjection()
+        srs = osr.SpatialReference(wkt=wkt_crs)
+        if not srs.IsProjected:
+            raise Exception("DEM CRS must be projected.")
+        return wkt_crs
 
     def _load(self) -> np.ndarray:
         dataset = gdal.Open(self.__path)
+        self.resolution = self.__get_resolution(dataset)
+        self.origin = self.__get_origin(dataset)
+        self.crs = self.__get_crs(dataset)
         return np.array(dataset.GetRasterBand(1).ReadAsArray())
 
-class dem_dummy(dem):
-    def __init__(self, dimensions: Tuple[int, int] = (100, 100), relief: float = 50, noise: float = 0.1) -> None:
+    def xy_coord_from_map_coords(
+        self, map_coords: Tuple[float, float]
+    ) -> Tuple[int, int]:
+        map_x, map_y = map_coords[0], map_coords[1]
+        map_x_offset = map_x - self.origin[0]
+        map_y_offset = self.origin[1] - map_y
+        coord_c_offset = map_x_offset / self.resolution[0]
+        coord_r_offset = map_y_offset / abs(self.resolution[1])
+        coord_c_offset_int = int(coord_c_offset)
+        coord_r_offset_int = int(coord_r_offset)
+        return (coord_r_offset_int, coord_c_offset_int)
+
+
+class DemDummy(Dem):
+    def __init__(
+        self,
+        dimensions: Tuple[int, int] = (100, 100),
+        relief: float = 50,
+        noise: float = 0.1,
+    ) -> None:
+
         self.__dimensions = dimensions
         self.__relief = relief
         self.__noise = noise
         self.dem = self._load()
-    
+        self.boundary = self._boundary()
+        self.resolution = (1, 1)
+        self.origin = (0, 0)
+        self.crs = "None"
+
     def _load(self) -> np.ndarray:
         start = 0
         stop = self.__relief
